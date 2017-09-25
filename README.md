@@ -12,5 +12,3 @@ We hope this will be useful for many users :)
 
 Lightberry Team
 
-TODO:
-- better error handling
