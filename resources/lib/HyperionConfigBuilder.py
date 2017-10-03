@@ -1,7 +1,11 @@
 import json
+from collections import OrderedDict
 
 
 class HyperionConfigSettings:
+    def __init__(self):
+        pass
+
     deviceType = ""
     deviceRate = ""
     deviceColorOrderSet = False
@@ -14,7 +18,7 @@ class HyperionConfigSettings:
     verticalDepth = ""
 
     startPoint = ""
-    offset = ""
+    offset = 0
 
     grabberEnabled = False
     grabberType = ""
@@ -69,21 +73,23 @@ class HyperionConfigBuilder:
         self.settings = HyperionConfigSettings()
 
     def buildJSON(self):
-        configDict = {"endOfJson": "endOfJson"}
+        configDict = OrderedDict()
 
         self.__buildDevice(configDict)
-        self.__buildLeds(configDict)
         self.__buildV4LGrabber(configDict)
         self.__buildGrabber(configDict)
         self.__buildBlackBorderDetection(configDict)
         self.__buildColor(configDict)
         self.__buildBootsequence(configDict)
+        self.__buildVideoChecker(configDict)
         self.__buildServers(configDict)
         self.__buildEffects(configDict)
-        self.__buildVideoChecker(configDict)
+        self.__buildLeds(configDict)
+
+        configDict["endOfJson"] = "endOfJson";
 
         return json.dumps(configDict, default=lambda o: o.__dict__,
-                          sort_keys=True, indent=4)
+                          sort_keys=False, indent=4)
 
     @staticmethod
     def getTypes(isGPIOAvailable):
@@ -104,7 +110,7 @@ class HyperionConfigBuilder:
 
     def setStartPoint(self, startPoint, offset):
         self.settings.startPoint = startPoint
-        self.settings.offset = offset
+        self.settings.offset = int(offset)
 
     def setDevice(self, param):
         self.settings.deviceType = param
@@ -174,15 +180,15 @@ class HyperionConfigBuilder:
     def __buildDevice(self, configDict):
         configDict["device"] = {
             "name": "lightberry",
-            "type": "ws2801",
-            "output": "/dev/spidev0.0",
             "rate": self.settings.deviceRate,
             "colorOrder": "rgb"
         }
-
+        if self.settings.deviceType == self.ws2801:
+            configDict["device"]["type"] = "ws2801"
+            configDict["device"]["output"] = "/dev/spidev0.0"
         if self.settings.deviceType == self.adalight:
             configDict["device"]["type"] = "adalight"
-            configDict["colorOrder"] = "/dev/ttyACM0"
+            configDict["device"]["output"] = "/dev/ttyACM0"
         elif self.settings.deviceType == self.lightberryXL:
             configDict["device"]["type"] = "adalight"
             configDict["device"]["output"] = "/dev/ttyACM0"
@@ -227,8 +233,8 @@ class HyperionConfigBuilder:
                         "maximum": self.settings.verticalDepth  #area_bottom_coordinate
                     },
                     "hscan": {
-                        "minimum": horizontalPosition * (horizontalSpan + 1), #area_right_coordinate
-                        "maximum": horizontalPosition * horizontalSpan #area_left_coordinate
+                        "minimum": horizontalSpan * (horizontalPosition + 1), #area_right_coordinate
+                        "maximum": horizontalSpan * horizontalPosition #area_left_coordinate
                     }
                 })
 
@@ -253,8 +259,8 @@ class HyperionConfigBuilder:
                         "maximum": 1.0  #area_bottom_coordinate
                     },
                     "hscan": {
-                        "minimum": horizontalPosition * (horizontalSpan + 1),  #area_right_coordinate
-                        "maximum": horizontalPosition * horizontalSpan  #area_left_coordinate
+                        "minimum": horizontalSpan * (horizontalPosition + 1),  #area_right_coordinate
+                        "maximum": horizontalSpan * horizontalPosition  #area_left_coordinate
                     }
                 })
 
@@ -272,7 +278,7 @@ class HyperionConfigBuilder:
             leds.append({
                 "vscan": {
                     "minimum": 1.0,
-                    "maximum": 1.0  # area_bottom_coordinate
+                    "maximum": 1.0
                 },
                 "hscan": {
                     "minimum": 1.0,
@@ -363,7 +369,7 @@ class HyperionConfigBuilder:
         return (self.settings.horizontal + self.settings.vertical) * 2
 
     def __getNumberOfLedsOff(self):
-        """ assumed max number of LEDs """
+        """ 150 is assumed max number of LEDs in typical sets """
         return 150 - self.__getNumberOfLedsTotal() \
             if 150 - self.__getNumberOfLedsTotal() > 0 else 0
 

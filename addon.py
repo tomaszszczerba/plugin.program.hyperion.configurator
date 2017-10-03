@@ -1,14 +1,14 @@
 import xbmc
-import os
 import sys
 import xbmcaddon
 import xbmcgui
 import time
+import os
 import subprocess
-import urllib2
 from resources.lib.SystemHelper import SystemHelper
 from resources.lib.SystemConfig import SystemConfig
 from resources.lib.HyperionConfigBuilder import HyperionConfigBuilder
+from resources.lib.Arrow import Arrow
 
 addon = xbmcaddon.Addon()
 addonname = addon.getAddonInfo('name')
@@ -62,7 +62,8 @@ def setDefaults():
     builder.setHorizontalDepth(0.08)
     builder.setVerticalDepth(0.1)
     builder.setDeviceRate(int(addon.getSetting("rate")))
-    builder.setDeviceColorOrder(addon.getSetting("colorOrder").lower())
+    if addon.getSetting("colorOrder").lower() != "default":
+        builder.setDeviceColorOrder(addon.getSetting("colorOrder").lower())
 
     builder.setColorRED(float(addon.getSetting("redThreshold")),
                         float(addon.getSetting("redGamma")),
@@ -89,7 +90,7 @@ def setDefaults():
         builder.setGrabberBlueSignalWhenSourceIsOff()
 
     builder.setGrabberPriority(int(float(addon.getSetting("grabberPriority"))))
-    builder.setGrabberVideoStandard(addon.getSetting("grabberStandard"))
+    builder.setGrabberVideoStandard(addon.getSetting("videoStandard"))
 
 
 def selectDevice():
@@ -136,20 +137,48 @@ def welcome():
     xbmcgui.Dialog().ok(addonname, line1, line2 + line3)
 
 
-def showTestImage():
-    testImagePath = getAddonRoot() + "/test_picture.png"
+def showTestImage(startPoint):
+    arrowHelper = Arrow(getAddonRoot())
+
+    xbmcgui.Dialog().ok(addonname, "For the next 10 seconds you will see test image. " +
+                        "The leds should adjust to that image. " +
+                        "Check if the leds are showing the right colors in the right places." +
+                        " If not, start this wizard again and " +
+                        "correct the numbers of leds horizontally and vertically." +
+                        "Arrow points to the start point.")
+
+    testImagePath = os.path.join(getAddonRoot(), "resources/img/test_picture.png")
     window = xbmcgui.WindowDialog(xbmcgui.getCurrentWindowId())
     image = xbmcgui.ControlImage(0, 0, 1280, 720, testImagePath)
-    window.addControl(image)
-    window.show()
-    image.setVisible(True)
+    arrow = arrowHelper.getControlImageStartPoint(startPoint)
 
+    window.addControl(image)
+    window.addControl(arrow)
+    window.show()
     SystemHelper.processStart(config.getShowTestImageCommand(testImagePath))
 
     time.sleep(10)
     window.close()
 
     SystemHelper.processStart(config.getClearLedsCommand())
+
+
+def setHorizontalAndVerticalLedNumber():
+    xbmcgui.Dialog().ok(addonname, "In the next two steps please provide a number of leds at the top edge of" +
+                        "  tv (horizontally) and a number of leds at the side of your tv " +
+                        "(count the leds at single side only) - horizontally")
+
+    nolHorizontal = xbmcgui.Dialog().input("Select the number of leds horizontally", "29", xbmcgui.INPUT_NUMERIC)
+    builder.setHorizontal(nolHorizontal)
+
+    nolVertical = xbmcgui.Dialog().input("Select the number of leds vertically", "16", xbmcgui.INPUT_NUMERIC)
+    builder.setVertical(nolVertical)
+
+
+def bye():
+    xbmcgui.Dialog().ok(addonname, "Enjoy!", "If you'd like to fine tune advanced parameters, "
+                                             "please modify addon advanced settings before running it",
+                        "You may need to restart your system.")
 
 
 try:
@@ -164,15 +193,7 @@ try:
     selectedDevice = selectDevice()
     builder.setDevice(selectedDevice)
 
-    xbmcgui.Dialog().ok(addonname, "In the next two steps please provide a number of leds at the top edge of" +
-                        "  tv (horizontally) and a number of leds at the side of your tv " +
-                        "(count the leds at single side only) - horizontally")
-
-    nolHorizontal = xbmcgui.Dialog().input("Select the number of leds horizontally", "29", xbmcgui.INPUT_NUMERIC)
-    builder.setHorizontal(nolHorizontal)
-
-    nolVertical = xbmcgui.Dialog().input("Select the number of leds vertically", "16", xbmcgui.INPUT_NUMERIC)
-    builder.setVertical(nolVertical)
+    setHorizontalAndVerticalLedNumber()
 
     startPoint = getStartPoint()
     offset = getOffset(startPoint)
@@ -193,13 +214,8 @@ try:
         xbmcgui.Dialog().ok(addonname, "Please try running hyperion from command line to see the error. " +
                                        "(" + config.getRunCommandTemp() + ")")
         sys.exit()
-    else:
-        xbmcgui.Dialog().ok(addonname, "For the next 10 seconds you will see test image. " +
-                                       "The leds should adjust to that image. " +
-                                       "Check if the leds are showing the right colors in the right places." +
-                                       " If not, start this wizard again and " +
-                                       "correct the numbers of leds horizontally and vertically.")
-        showTestImage()
+
+    showTestImage(startPoint)
 
     if xbmcgui.Dialog().yesno(addonname, "Do you want to save this config as your default one?",
                               "(if you select No, changes will be lost after hyperion/system restart)"):
@@ -208,9 +224,7 @@ try:
                                            "Would you like to restart hyperion with previous config?"):
         SystemHelper.processStart(config.getRunCommand())
 
-    xbmcgui.Dialog().ok(addonname, "Enjoy!", "If you'd like to fine tune advanced parameters, "
-                                             "please modify addon advanced settings before running it",
-                        "You may need to restart your system.")
+    bye()
 
 except Exception, e:
         xbmcgui.Dialog().ok(addonname, repr(e), "Please report an error at github issue list")
