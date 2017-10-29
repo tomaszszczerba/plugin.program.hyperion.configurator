@@ -26,6 +26,8 @@ class HyperionConfigSettings:
     grabberVideoStandard = ""
     grabberBlueSignalWhenSourceIsOff = False
 
+    recommendedColorSettings = True
+
     REDThreshold = ""
     REDGamma = ""
     REDBlack = ""
@@ -141,19 +143,26 @@ class HyperionConfigBuilder:
         self.settings.deviceColorOrderSet = True
         self.settings.deviceColorOrder = param
 
+    def setRecommendedColorSettings(self):
+        self.settings.recommendedColorSettings = True
+        pass
+
     def setColorRED(self, threshold, gamma, black, white):
+        self.settings.recommendedColorSettings = False
         self.settings.REDThreshold = threshold
         self.settings.REDGamma = gamma
         self.settings.REDBlack = black
         self.settings.REDWhite = white
 
     def setColorGREEN(self, threshold, gamma, black, white):
+        self.settings.recommendedColorSettings = False
         self.settings.GREENThreshold = threshold
         self.settings.GREENGamma = gamma
         self.settings.GREENBlack = black
         self.settings.GREENWhite = white
 
     def setColorBLUE(self, threshold, gamma, black, white):
+        self.settings.recommendedColorSettings = False
         self.settings.BLUEThreshold = threshold
         self.settings.BLUEGamma = gamma
         self.settings.BLUEBlack = black
@@ -192,7 +201,6 @@ class HyperionConfigBuilder:
         elif self.settings.deviceType == self.lightberryXL:
             configDict["device"]["type"] = "adalight"
             configDict["device"]["output"] = "/dev/ttyACM0"
-            configDict["device"]["colorOrder"] = "brg"
         elif self.settings.deviceType == self.apa102:
             configDict["device"]["type"] = "apa102"
             configDict["device"]["output"] = "/dev/spidev0.0"
@@ -216,12 +224,12 @@ class HyperionConfigBuilder:
                 verticalPosition = i + 1
                 leds.append({
                     "vscan": {
-                        "minimum": (1 - verticalSpan * verticalPosition),  #area_top_coordinate
-                        "maximum": (1 - verticalSpan * (verticalPosition + 1))  #area_bottom_coordinate
+                        "minimum": (1 - verticalSpan * verticalPosition),  # area_top_coordinate
+                        "maximum": (1 - verticalSpan * (verticalPosition + 1))  # area_bottom_coordinate
                     },
                     "hscan": {
-                        "minimum": 1.0,  #area_right_coordinate
-                        "maximum": 1 - self.settings.horizontalDepth  #area_left_coordinate
+                        "minimum": 1.0,  # area_right_coordinate
+                        "maximum": 1 - self.settings.horizontalDepth  # area_left_coordinate
                     }
                 })
 
@@ -229,12 +237,12 @@ class HyperionConfigBuilder:
                 horizontalPosition = self.settings.horizontal - (i - self.settings.vertical) - 1
                 leds.append({
                     "vscan": {
-                        "minimum": 0.0,  #area_top_coordinate
-                        "maximum": self.settings.verticalDepth  #area_bottom_coordinate
+                        "minimum": 0.0,  # area_top_coordinate
+                        "maximum": self.settings.verticalDepth  # area_bottom_coordinate
                     },
                     "hscan": {
-                        "minimum": horizontalSpan * (horizontalPosition + 1), #area_right_coordinate
-                        "maximum": horizontalSpan * horizontalPosition #area_left_coordinate
+                        "minimum": horizontalSpan * (horizontalPosition + 1),  # area_right_coordinate
+                        "maximum": horizontalSpan * horizontalPosition  # area_left_coordinate
                     }
                 })
 
@@ -242,12 +250,12 @@ class HyperionConfigBuilder:
                 verticalPosition = i - self.settings.vertical - self.settings.horizontal
                 leds.append({
                     "vscan": {
-                        "minimum": verticalSpan * verticalPosition,  #area_top_coordinate
-                        "maximum": verticalSpan * (verticalPosition + 1)  #area_bottom_coordinate
+                        "minimum": verticalSpan * verticalPosition,  # area_top_coordinate
+                        "maximum": verticalSpan * (verticalPosition + 1)  # area_bottom_coordinate
                     },
                     "hscan": {
-                        "minimum": self.settings.horizontalDepth,  #area_right_coordinate
-                        "maximum": 0.0  #area_left_coordinate
+                        "minimum": self.settings.horizontalDepth,  # area_right_coordinate
+                        "maximum": 0.0  # area_left_coordinate
                     }
                 })
 
@@ -255,12 +263,12 @@ class HyperionConfigBuilder:
                 horizontalPosition = i - self.settings.vertical - self.settings.horizontal - self.settings.vertical
                 leds.append({
                     "vscan": {
-                        "minimum": 1 - self.settings.verticalDepth,  #area_top_coordinate
-                        "maximum": 1.0  #area_bottom_coordinate
+                        "minimum": 1 - self.settings.verticalDepth,  # area_top_coordinate
+                        "maximum": 1.0  # area_bottom_coordinate
                     },
                     "hscan": {
-                        "minimum": horizontalSpan * (horizontalPosition + 1),  #area_right_coordinate
-                        "maximum": horizontalSpan * horizontalPosition  #area_left_coordinate
+                        "minimum": horizontalSpan * (horizontalPosition + 1),  # area_right_coordinate
+                        "maximum": horizontalSpan * horizontalPosition  # area_left_coordinate
                     }
                 })
 
@@ -374,32 +382,94 @@ class HyperionConfigBuilder:
             if 150 - self.__getNumberOfLedsTotal() > 0 else 0
 
     def __buildLedTransformations(self):
-        transform = {
-            "id": "leds",
-            "leds": "0-" + str(self.__getNumberOfLedsTotal() - 1),
-            "red": {
-                "threshold": self.settings.REDThreshold,
-                "blacklevel": self.settings.REDBlack,
-                "whitelevel": self.settings.REDWhite,
-                "gamma": self.settings.REDGamma
-            },
-            "green": {
-                "threshold": self.settings.GREENThreshold,
-                "blacklevel": self.settings.GREENBlack,
-                "whitelevel": self.settings.GREENWhite,
-                "gamma": self.settings.GREENGamma
-            },
-            "blue": {
-                "threshold": self.settings.BLUEThreshold,
-                "blacklevel": self.settings.BLUEBlack,
-                "whitelevel": self.settings.BLUEWhite,
-                "gamma": self.settings.BLUEGamma
-            },
-            "hsv": {
-                "saturationGain": 1.0,
-                "valueGain": 1.0
+        if self.settings.recommendedColorSettings and \
+                (self.settings.deviceType == self.adalight or
+                 self.settings.deviceType == self.ws2801 or
+                 self.settings.deviceType == self.lightberryXL):
+            transform = {
+                "id": "leds",
+                "leds": "0-" + str(self.__getNumberOfLedsTotal() - 1),
+                "red": {
+                    "threshold": 0.05,
+                    "blacklevel": 0,
+                    "whitelevel": 1.0,
+                    "gamma": 2.0
+                },
+                "green": {
+                    "threshold": 0.05,
+                    "blacklevel": 0,
+                    "whitelevel": 0.85,
+                    "gamma": 2.0
+                },
+                "blue": {
+                    "threshold": 0.05,
+                    "blacklevel": 0,
+                    "whitelevel": 0.85,
+                    "gamma": 2.0
+                },
+                "hsv": {
+                    "saturationGain": 1.0,
+                    "valueGain": 1.0
+                }
             }
-        }
+            return transform
+        if self.settings.recommendedColorSettings and \
+                (self.settings.deviceType == self.adalightapa102 or
+                 self.settings.deviceType == self.apa102):
+            transform = {
+                "id": "leds",
+                "leds": "0-" + str(self.__getNumberOfLedsTotal() - 1),
+                "red": {
+                    "threshold": 0.05,
+                    "blacklevel": 0,
+                    "whitelevel": 0.85,
+                    "gamma": 2.7
+                },
+                "green": {
+                    "threshold": 0.05,
+                    "blacklevel": 0,
+                    "whitelevel": 1,
+                    "gamma": 2.6
+                },
+                "blue": {
+                    "threshold": 0.05,
+                    "blacklevel": 0,
+                    "whitelevel": 1,
+                    "gamma": 2.6
+                },
+                "hsv": {
+                    "saturationGain": 1.0,
+                    "valueGain": 1.0
+                }
+            }
+            return transform
+        else:
+            transform = {
+                "id": "leds",
+                "leds": "0-" + str(self.__getNumberOfLedsTotal() - 1),
+                "red": {
+                    "threshold": self.settings.REDThreshold,
+                    "blacklevel": self.settings.REDBlack,
+                    "whitelevel": self.settings.REDWhite,
+                    "gamma": self.settings.REDGamma
+                },
+                "green": {
+                    "threshold": self.settings.GREENThreshold,
+                    "blacklevel": self.settings.GREENBlack,
+                    "whitelevel": self.settings.GREENWhite,
+                    "gamma": self.settings.GREENGamma
+                },
+                "blue": {
+                    "threshold": self.settings.BLUEThreshold,
+                    "blacklevel": self.settings.BLUEBlack,
+                    "whitelevel": self.settings.BLUEWhite,
+                    "gamma": self.settings.BLUEGamma
+                },
+                "hsv": {
+                    "saturationGain": 1.0,
+                    "valueGain": 1.0
+                }
+            }
         return transform
 
     def __buildLedOFFTransformations(self):

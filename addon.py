@@ -65,20 +65,23 @@ def setDefaults():
     if addon.getSetting("colorOrder").lower() != "default":
         builder.setDeviceColorOrder(addon.getSetting("colorOrder").lower())
 
-    builder.setColorRED(float(addon.getSetting("redThreshold")),
-                        float(addon.getSetting("redGamma")),
-                        float(addon.getSetting("redBlacklevel")),
-                        float(addon.getSetting("redWhitelevel")))
+    if addon.getSetting("recommendedColorSettings") == "true":
+        builder.setRecommendedColorSettings()
+    else:
+        builder.setColorRED(float(addon.getSetting("redThreshold")),
+                            float(addon.getSetting("redGamma")),
+                            float(addon.getSetting("redBlacklevel")),
+                            float(addon.getSetting("redWhitelevel")))
 
-    builder.setColorGREEN(float(addon.getSetting("greenThreshold")),
-                          float(addon.getSetting("greenGamma")),
-                          float(addon.getSetting("greenBlacklevel")),
-                          float(addon.getSetting("greenWhitelevel")))
+        builder.setColorGREEN(float(addon.getSetting("greenThreshold")),
+                              float(addon.getSetting("greenGamma")),
+                              float(addon.getSetting("greenBlacklevel")),
+                              float(addon.getSetting("greenWhitelevel")))
 
-    builder.setColorBLUE(float(addon.getSetting("blueThreshold")),
-                         float(addon.getSetting("blueGamma")),
-                         float(addon.getSetting("blueBlacklevel")),
-                         float(addon.getSetting("blueWhitelevel")))
+        builder.setColorBLUE(float(addon.getSetting("blueThreshold")),
+                             float(addon.getSetting("blueGamma")),
+                             float(addon.getSetting("blueBlacklevel")),
+                             float(addon.getSetting("blueWhitelevel")))
 
     builder.setSmoothing(addon.getSetting("smoothingType"),
                          int(addon.getSetting("smoothingTime")),
@@ -130,11 +133,11 @@ def setGrabber():
                 builder.setGrabberEnabled(builder.grabberSTK)
 
 
-def welcome():
+def showSettings():
     line1 = "Welcome!"
     line2 = "We are about to prepare your hyperion config file in this step-by-step wizard."
     line3 = "You must complete all steps to have the config file generated. Let\'s start!"
-    xbmcgui.Dialog().ok(addonname, line1, line2 + line3)
+    return xbmcgui.Dialog().yesno(addonname, line1, line2, line3, "Let's start!", "Advanced settings")
 
 
 def showTestImage(startPoint):
@@ -184,7 +187,9 @@ def bye():
 try:
     config = SystemConfig(getAddonRoot())
 
-    welcome()
+    if showSettings():
+        addon.openSettings()
+
     checkAndInstallPrerequisities()
 
     builder = HyperionConfigBuilder()
@@ -220,7 +225,7 @@ try:
     if xbmcgui.Dialog().yesno(addonname, "Do you want to save this config as your default one?",
                               "(if you select No, changes will be lost after hyperion/system restart)"):
         SystemHelper.saveFile(config.hyperiondConfig, configFileContent)
-    elif xbmcgui.Dialog().yesno(addonname, "Hyperion is now running with the newly created config. "
+    elif xbmcgui.Dialog().yesno(addonname, "Hyperion is now running with the newly created config. ",
                                            "Would you like to restart hyperion with previous config?"):
         SystemHelper.processStart(config.getRunCommand())
 
