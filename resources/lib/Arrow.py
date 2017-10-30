@@ -24,15 +24,15 @@ class Arrow:
                                         self.sizex,
                                         self.sizey,
                                         self.workingDir + self.down)
-        elif startPoint == HyperionConfigBuilder.startRB:
+        elif startPoint == HyperionConfigBuilder.startLB:
             return xbmcgui.ControlImage(0,
                                         self.screeny - self.sizey,
                                         self.sizey,
                                         self.sizex,
-                                        self.workingDir + self.left)
-        elif startPoint == HyperionConfigBuilder.startLB:
+                                        self.workingDir + self.right)
+        elif startPoint == HyperionConfigBuilder.startRB:
             return xbmcgui.ControlImage(self.screenx - self.sizex,
                                         self.screeny - self.sizey,
                                         self.sizey,
                                         self.sizex,
-                                        self.workingDir + self.right)
+                                        self.workingDir + self.left)

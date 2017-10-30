@@ -214,7 +214,7 @@ try:
     SystemHelper.processStart(config.getRunCommandTemp())
 
     if not xbmcgui.Dialog().yesno(addonname, "Have you seen the rainbow swirl? " +
-                                             "(sometimes it does not appear, if you're sure that correct led type "
+                                             "(sometimes it does not appear, if you're sure that correct led type " +
                                              "is selected but the answer YES anyway, save config as default and reboot)"):
         xbmcgui.Dialog().ok(addonname, "Please try running hyperion from command line to see the error. " +
                                        "(" + config.getRunCommandTemp() + ")")
