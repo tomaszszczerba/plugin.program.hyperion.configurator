@@ -71,9 +71,9 @@ class SystemHelper:
             result = SystemHelper.GrabberSTK
 
         if result != SystemHelper.GrabberMISSING and "video0" not in subprocess.check_output(['ls', '/dev']):
-            return result
-        else:
             return SystemHelper.GrabberMISSINGDEVICE
+        else:
+            return SystemHelper.GrabberMISSING
     @staticmethod
     def __runProcess(cmd):
         if SystemHelper.isSudoRequired():
