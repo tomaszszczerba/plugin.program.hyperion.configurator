@@ -70,7 +70,7 @@ class SystemHelper:
         elif "05e1:0408" in lsusb_output:
             result = SystemHelper.GrabberSTK
 
-        if result != SystemHelper.GrabberMISSING and "video0" in subprocess.check_output(['ls', '/dev']):
+        if result != SystemHelper.GrabberMISSING and "video0" not in subprocess.check_output(['ls', '/dev']):
             return result
         else:
             return SystemHelper.GrabberMISSINGDEVICE

@@ -20,3 +20,6 @@
 1.8.2 Bugfix filling unused leds and hardcoded repo address
 1.9.0 Adjust to new hyperion deafult config folder /etc/hyperion
 1.9.1 Adjust to new hyperion grabber priority logic
+3.0.0 Refactoring
+3.0.1 Bugfixes
+3.0.2 Bugfixes
