@@ -33,7 +33,7 @@ class SystemHelper:
         try:
             subprocess.call(["lsusb"])
             subprocess.call(["killall", "-help"])
-        except Exception, e:
+        except Exception as e:
             return SystemHelper.NoSystemUtils
         return SystemHelper.OK
 
@@ -53,9 +53,15 @@ class SystemHelper:
         rc = subprocess.call(["curl", "-L", "--output", os.path.join(workRoot,
                              "install_hyperion.sh"), "--get",
                               "https://raw.githubusercontent.com/tvdzwan/hyperion/master/bin/install_hyperion.sh"])
+
         if rc != 0:
             return -2
-        return subprocess.call(["sh", os.path.join(workRoot, "install_hyperion.sh")])
+
+        p = subprocess.Popen(["sh", os.path.join(workRoot, "install_hyperion.sh")],
+                             stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        p.communicate(input="y\n")
+        return p.returncode
 
     @staticmethod
     def isGpioAvailable():

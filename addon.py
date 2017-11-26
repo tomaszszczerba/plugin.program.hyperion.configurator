@@ -32,7 +32,10 @@ def checkAndInstallPrerequisities():
         if SystemHelper.isOSMC():
             xbmcgui.Dialog().ok(addonname, "Hyperion installation was not detected. Please install manually.")
             sys.exit()
-        xbmcgui.Dialog().ok(addonname, "Hyperion installation was not detected. Installing...")
+        xbmcgui.Dialog().ok(addonname, "Hyperion installation was not detected. Installing...\n" +
+                            "Raspberry pi might restart after the installation is completed, " +
+                            "please run the addon again after the restart. Installation might take up to 5 minutes " +
+                            "depending on your internet connection.")
         rc = SystemHelper.installHyperion(getAddonRoot())
         if rc == -2:
             xbmcgui.Dialog().ok(addonname,

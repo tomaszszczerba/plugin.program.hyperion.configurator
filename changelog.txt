@@ -27,3 +27,4 @@
 3.0.4 Bugfixes
 3.0.5 Bugfixes
 3.0.6 Bugfixes
+3.0.7 Fixed hyperion install
