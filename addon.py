@@ -182,7 +182,7 @@ def setHorizontalAndVerticalLedNumber():
 
 
 def bye():
-    xbmcgui.Dialog().ok(addonname, "Enjoy!", "If you'd like to fine tune advanced parameters, "
+    xbmcgui.Dialog().ok(addonname, "Enjoy!", "If you'd like to fine tune advanced parameters, " +
                                              "please modify addon advanced settings before running it",
                         "You may need to restart your system.")
 
@@ -220,7 +220,7 @@ try:
                                              "(sometimes it does not appear, if you're sure that correct led type " +
                                              "is selected but the answer YES anyway, save config as default and reboot)"):
         xbmcgui.Dialog().ok(addonname, "Please try running hyperion from command line to see the error. " +
-                                       "(" + config.getRunCommandTemp() + ")")
+                                       "(" + " ".join(config.getRunCommandTemp()) + ")")
         sys.exit()
 
     showTestImage(startPoint)

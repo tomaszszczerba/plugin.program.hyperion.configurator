@@ -28,3 +28,4 @@
 3.0.5 Bugfixes
 3.0.6 Bugfixes
 3.0.7 Fixed hyperion install
+3.0.8 Fixed msg when rainbow wasn't visible
